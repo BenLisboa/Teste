@@ -101,7 +101,8 @@ gap = filter(gapminder, year == 1997)
 
 #1 - dispersão básica
 ggplot(data = gap) +
-  geom_point(mapping = aes(x = gdpPercap, y = lifeExp))
+  geom_point(mapping = aes(x = gdpPercap, y = lifeExp)) +
+  theme_classic()
 
 #2 - Separar continente por cor
 ggplot(data = gap) +
