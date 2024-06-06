@@ -1,12 +1,14 @@
 install.packages('tidyverse')
 install.packages('nycflights13')
 install.packages('skimr')
+install.packages('ggrepel')
 
 rm(list = ls())
 
 library(tidyverse)
 library(nycflights13)
 library(skimr)
+library(ggrepel)
 
 ###### O pipe 
 
@@ -100,6 +102,15 @@ flights %>%
 
 unique(flights$carrier) # Companhias aéreas únicas
 table(flights$carrier) # uma alternativa
+
+table(flights$flight) 
+
+flights %>% 
+  count(flight, sort = TRUE)
+
+flights %>% 
+  count(flight, sort = TRUE) %>% 
+  arrange(desc(n))
 
 flights %>% 
   filter(carrier %in% c("UA", "AA", "B6")) # vôos feitos por essas carriers
@@ -247,3 +258,36 @@ flights %>%
   geom_smooth(se = FALSE) +
   labs(x = "Mean distance", y = "Mean delay", title = "Destinations") +
   theme_bw()
+
+flights %>%
+  filter(!is.na(dep_delay), !is.na(arr_delay)) %>%
+  group_by(dest) %>%
+  summarise(count = n(), distance = mean(distance), delay = mean(arr_delay))  %>%
+  filter(count >= 500) %>%
+  ggplot(mapping = aes(x = distance, y = delay, label = dest)) +
+  geom_text_repel() +
+  geom_smooth(se = FALSE) +
+  labs(x = "Mean distance", y = "Mean delay", title = "Destinations") +
+  theme_classic()
+
+flights %>%
+  filter(!is.na(dep_delay), !is.na(arr_delay)) %>%
+  group_by(dest) %>%
+  summarise(count = n(), distance = mean(distance), delay = mean(arr_delay))  %>%
+  filter(count >= 500) %>%
+  ggplot(mapping = aes(x = distance, y = delay, label = dest)) +
+  geom_text() +
+  geom_smooth(se = FALSE) +
+  labs(x = "Mean distance", y = "Mean delay", title = "Destinations") +
+  theme_classic()
+
+flights %>%
+  filter(!is.na(dep_delay), !is.na(arr_delay)) %>%
+  mutate(gain_in_air = arr_delay - dep_delay) %>% 
+  group_by(carrier) %>%
+  summarise(gain_in_air = mean(gain_in_air))  %>%
+  ggplot(mapping = aes(x = reorder(carrier, gain_in_air), y = gain_in_air, colour = carrier, fill = carrier)) +
+  geom_bar(stat = "identity") +
+  theme_classic() +
+  labs(x = "Carrier", y = "Time gained in air") +
+  theme(legend.position="none")

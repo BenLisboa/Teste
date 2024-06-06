@@ -129,6 +129,28 @@ tidy_billboard %>%
        y = "",
        title = "Tracks que permaneceram maior tempo na billboard")
 
+tidy_billboard %>% 
+  filter(position == 1) %>% 
+  count(track, sort = TRUE) %>% 
+  mutate(track = fct_reorder(track, n)) %>% 
+  ggplot(aes(n, track, fill = track)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = "Número de dias no Top 1 da billboard",
+       y = "",
+       title = "Tracks que permaneceram maior tempo no Top 1 da billboard") +
+  theme_classic()
+
+tidy_billboard %>% 
+  filter(position <= 5) %>% 
+  count(track, sort = TRUE) %>% 
+  mutate(track = fct_reorder(track, n)) %>% 
+  ggplot(aes(n, track, fill = track)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = "Número de dias no Top 5 da billboard",
+       y = "",
+       title = "Tracks que permaneceram maior tempo no Top 5 da billboard") +
+  theme_classic()
+
 # Estudo de caso 2: WHO (world health organization)
 
 who
@@ -143,36 +165,37 @@ tidy_who <- who %>%
   separate(age, into = c("min_age", "max_age"), sep = -2) %>% 
   unite("age", min_age:max_age, sep = "-") %>% 
   mutate(age = ifelse(age == "-65", "65+", age)) %>% 
-  select(-c("iso3", "new"))
+  select(-c("iso3", "new")) %>% 
+  filter(!is.na(cases))
 
 tidy_who %>% 
-  count(country)
+  count(country) %>%  view
 
 tidy_who %>% 
   count(year) %>% view
 
 tidy_who %>% 
   group_by(country, year) %>% 
-  filter(!is.na(cases), 
-         country %in% c("Brazil", "United States of America",
+  filter(country %in% c("Brazil", "United States of America",
                         "Russian Federation", "China",
-                        "India")) %>% 
+                        "India", "South Africa")) %>% 
   summarise(total_cases = sum(cases)) %>% 
   ggplot(aes(year, total_cases, color = country)) +
-  geom_line(size = 2) +
+  geom_line(size = 0.75) +
   scale_y_continuous(labels = number_format(scale = 1/1000, suffix = "k")) +
   labs(x = "Ano",
        y = "# Total de casos",
        title = "Avanço da tuberculose",
        subtitle = "entre 1995 e 2015",
-       caption = "Fonte: World Health Organization")
+       caption = "Fonte: World Health Organization") + 
+  theme_classic()
 
 # mapa de 2013    
 
 tidy_who %>% 
   filter(year == 2013) %>% 
   group_by(iso2) %>% 
-  summarise(total_cases = sum(cases, na.rm = TRUE)) %>% 
+  summarise(total_cases = sum(cases)) %>% 
   left_join(world, by = c("iso2" = "iso_a2")) %>%
   ggplot() +
   geom_sf(data = world, aes(geometry = geom), fill = "lightgrey") +
